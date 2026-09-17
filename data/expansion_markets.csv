@@ -1,9 +1,29 @@
-﻿brand;europe;southeast_asia;middle_east;latin_america;expansion_score
-BYD;1;1;1;1;10
-Geely;1;1;1;1;8
-Zeekr;1;0;1;0;7
-NIO;1;0;1;0;6
-XPeng;1;1;1;0;7
-Li Auto;0;0;1;0;5
-Xiaomi Auto;0;0;0;0;5
-Jaecoo;1;1;1;1;8
+brand;region;presence_status;evidence_country;evidence_date;source;source_url;verification_date;evidence_note
+BYD;Europe;present;Netherlands;2026-09-17;EV Database availability listing;https://ev-database.org/car/3297/BYD-DOLPHIN-604-kWh;2026-09-17;"Dutch price and open-ended available-to-order listing observed on review date; country witness only, not all-Europe coverage."
+BYD;Southeast Asia;present;Thailand;2026-09-17;BYD Thailand;https://www.byd.com/en-th;2026-09-17;Official country catalogue offers passenger models and test-drive booking on review date.
+BYD;Middle East;unknown;;;;;2026-09-17;"No qualifying evidence retained in this bounded review; not evidence of absence."
+BYD;Latin America;present;Brazil;2026-09-17;BYD Brazil;https://www.byd.com/br/termos-de-uso;2026-09-17;"Official country site states that vehicles are sold in Brazil through authorized dealers; reviewed current commercial channel."
+Jaecoo;Europe;present;United Kingdom;2026-07-17;JAECOO UK;https://jaecoo.co.uk/news/flagship-jaecoo-8-shs-p-first-uk-deliveries/;2026-09-17;"Official report of UK customer deliveries. Brand presence includes PHEV; not evidence that the selected Australian J5 EV is sold in the UK."
+Jaecoo;Southeast Asia;unknown;;;;;2026-09-17;"No qualifying evidence retained in this bounded review; not evidence of absence."
+Jaecoo;Middle East;unknown;;;;;2026-09-17;"No qualifying evidence retained in this bounded review; not evidence of absence."
+Jaecoo;Latin America;unknown;;;;;2026-09-17;"No qualifying evidence retained in this bounded review; not evidence of absence."
+Li Auto;Europe;unknown;;;;;2026-09-17;"No qualifying evidence retained in this bounded review; not evidence of absence."
+Li Auto;Southeast Asia;unknown;;;;;2026-09-17;"No qualifying evidence retained in this bounded review; not evidence of absence."
+Li Auto;Middle East;unknown;;;;;2026-09-17;"No qualifying evidence retained in this bounded review; not evidence of absence."
+Li Auto;Latin America;unknown;;;;;2026-09-17;"No qualifying evidence retained in this bounded review; not evidence of absence."
+NIO;Europe;present;Netherlands;2026-09-17;EV Database availability listing;https://ev-database.org/car/1916/NIO-ET5-Touring-Long-Range;2026-09-17;"Dutch price and open-ended available-to-order listing observed on review date; country witness only, not all-Europe coverage."
+NIO;Southeast Asia;unknown;;;;;2026-09-17;"No qualifying evidence retained in this bounded review; not evidence of absence."
+NIO;Middle East;unknown;;;;;2026-09-17;"No qualifying evidence retained in this bounded review; not evidence of absence."
+NIO;Latin America;unknown;;;;;2026-09-17;"No qualifying evidence retained in this bounded review; not evidence of absence."
+XPeng;Europe;present;Netherlands;2026-09-17;EV Database availability listing;https://ev-database.org/car/3275/XPENG-G6-RWD-Long-Range;2026-09-17;"Dutch price and open-ended available-to-order listing observed on review date; country witness only, not all-Europe coverage."
+XPeng;Southeast Asia;unknown;;;;;2026-09-17;"No qualifying evidence retained in this bounded review; not evidence of absence."
+XPeng;Middle East;unknown;;;;;2026-09-17;"No qualifying evidence retained in this bounded review; not evidence of absence."
+XPeng;Latin America;unknown;;;;;2026-09-17;"No qualifying evidence retained in this bounded review; not evidence of absence."
+Xiaomi Auto;Europe;unknown;;;;;2026-09-17;"No qualifying evidence retained in this bounded review; not evidence of absence."
+Xiaomi Auto;Southeast Asia;unknown;;;;;2026-09-17;"No qualifying evidence retained in this bounded review; not evidence of absence."
+Xiaomi Auto;Middle East;unknown;;;;;2026-09-17;"No qualifying evidence retained in this bounded review; not evidence of absence."
+Xiaomi Auto;Latin America;unknown;;;;;2026-09-17;"No qualifying evidence retained in this bounded review; not evidence of absence."
+Zeekr;Europe;present;Netherlands;2026-09-17;EV Database availability listing;https://ev-database.org/car/1933/Zeekr-001-Long-Range-RWD;2026-09-17;"Dutch price and open-ended available-to-order listing observed on review date; country witness only, not all-Europe coverage."
+Zeekr;Southeast Asia;unknown;;;;;2026-09-17;"No qualifying evidence retained in this bounded review; not evidence of absence."
+Zeekr;Middle East;unknown;;;;;2026-09-17;"No qualifying evidence retained in this bounded review; not evidence of absence."
+Zeekr;Latin America;unknown;;;;;2026-09-17;"No qualifying evidence retained in this bounded review; not evidence of absence."

@@ -1,9 +1,8 @@
-﻿brand;parent_company;positioning;main_segment;notes
-BYD;BYD;Mass market;Mass market;Strong battery and export strategy
-Geely;Geely Group;Mass market;Mass market;Large automotive group
-Zeekr;Geely Group;Premium;Premium EV;Premium EV brand under Geely
-NIO;NIO;Premium/Luxury;Premium EV;Battery swap technology
-XPeng;XPeng;Tech premium;Premium EV;Smart driving focus
-Li Auto;Li Auto;Family premium;EREV/BEV;Large SUVs
-Xiaomi Auto;Xiaomi;Tech performance;Premium EV;Consumer tech ecosystem
-Jaecoo;Chery;Premium SUV;Export SUV;International SUV brand under Chery
+brand;group_or_company;relationship;source_url;verification_date;positioning_editorial
+BYD;;not_established;;2026-09-17;Broad-market selection
+Jaecoo;Chery Group;group_brand;https://jaecoo.co.uk/about-us/;2026-09-17;Compact SUV selection
+Li Auto;Li Auto Inc.;operating_company;https://ir.lixiang.com/;2026-09-17;Family SUV selection
+NIO;NIO Inc.;operating_company;https://ir.nio.com/;2026-09-17;Premium wagon selection
+XPeng;XPeng Inc.;operating_company;https://ir.xiaopeng.com/;2026-09-17;SUV selection
+Xiaomi Auto;Xiaomi Corporation;group_business;https://ir.mi.com/system/files-encrypted/nasdaq_kms/assets/2024/03/19/5-34-07/23Q4_EN_797121_%28Xiaomi%20RA%20Eng%29_AsPrint_Fullset_1652.pdf;2026-09-17;Performance sedan selection
+Zeekr;Geely Automobile Holdings;group_brand;https://www.geelyauto.com.hk/company-brief/;2026-09-17;Premium long-range selection

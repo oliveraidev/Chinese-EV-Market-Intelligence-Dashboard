@@ -1,1 +1,8 @@
 .DS_Store
+.venv/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.cache/
+# Local working screenshots; published images live in screenshots/.
+/Scherm*afbeelding*.png

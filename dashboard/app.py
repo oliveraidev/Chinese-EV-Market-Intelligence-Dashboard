@@ -1,143 +1,164 @@
-import streamlit as st
-import pandas as pd
+"""Compact, source-transparent competitor screening; run with Streamlit."""
+from pathlib import Path
+import sys
+
 import matplotlib.pyplot as plt
+from matplotlib.colors import ListedColormap
+import pandas as pd
+import streamlit as st
 
-st.set_page_config(page_title="Chinese EV Dashboard", layout="centered")
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+from dashboard.data import load_data, comparable_models, kpis, presence_matrix
 
-st.title("Chinese EV Expansion Dashboard")
+st.set_page_config(page_title="Chinese EV | Competitor Screening", layout="wide")
+st.title("Chinese EV · Competitor Screening")
+st.caption("MARKET INTELLIGENCE  /  Source review: 17 September 2026")
+st.write("How do selected Chinese EV models compare on like-for-like vehicle attributes, "
+         "and where is international brand presence documented?")
+st.caption("For market-intelligence analysts and importers building an initial research shortlist. "
+           "Eight selected models, not a market census. Historical specifications are labelled. "
+           "No sales performance, market-entry recommendation or causal inference.")
 
-# Data loading
-brands = pd.read_csv("../data/brands.csv", sep=";")
-models = pd.read_csv("../data/model_specs.csv", sep=";")
-expansion = pd.read_csv("../data/expansion_markets.csv", sep=";")
+try:
+    models, brands, presence = load_data()
+except (OSError, ValueError, pd.errors.ParserError) as exc:
+    st.error(f"Cannot load the portfolio data: {exc}. Check the CSV files in data/.")
+    st.stop()
 
-# Merge datasets
-df = models.merge(brands, on="brand", how="left")
-df = df.merge(expansion, on="brand", how="left")
+brand = st.sidebar.selectbox("Brand", ["All"] + sorted(models.brand.unique()))
+st.sidebar.caption("All figures and views follow this selection. Missing evidence remains unknown.")
+selected = models if brand == "All" else models.loc[models.brand.eq(brand)].copy()
+scope = presence.loc[presence.brand.isin(selected.brand.unique())].copy()
+metrics = kpis(selected)
+columns = st.columns(4)
+for column, label, value, help_text in zip(columns,
+        ["Models selected", "Brands represented", "Comparable price + range", "Electric range evidence"],
+        [metrics['models'], metrics['brands'], f"{metrics['comparable']} / {metrics['models']}",
+         f"{metrics['range']} / {metrics['models']}"],
+        ["Count of distinct model rows in the selection.", "Count of distinct brands in the selection.",
+         "BEV; Dutch listed RRP; currently listed available; EV Database Real Range. No imputation.",
+         "Non-missing sourced electric-range values. Standards differ; this is coverage, not an average."]):
+    column.metric(label, value, help=help_text)
 
-# Sidebar filter
-brand_filter = st.sidebar.selectbox(
-    "Brand",
-    ["All"] + sorted(df["brand"].dropna().unique())
-)
+overview, international = st.tabs(["Model comparison", "International presence"])
 
-if brand_filter != "All":
-    df = df[df["brand"] == brand_filter]
 
-# Score calculation
-df["price_for_score"] = df["price_eur"].fillna(df["price_eur"].mean())
+def number(value, decimals=0):
+    return "Not verified" if pd.isna(value) else f"{value:,.{decimals}f}"
 
-df["competitiveness_score"] = (
-    df["range_km"] / 10
-    + df["expansion_score"] * 5
-    - df["price_for_score"] / 1000
-)
 
-# KPI's
-st.subheader("Key Metrics")
+with overview:
+    st.subheader("Model comparison")
+    st.caption("Source-checked values only. Scroll horizontally for context and source links; "
+               "‘Partial’ means some fields are withheld, not that missing values are zero.")
+    display = pd.DataFrame({
+        "Brand": selected.brand,
+        "Model": selected.model,
+        "Powertrain": selected.powertrain_type,
+        "Price / market": selected.apply(lambda r: "Not verified" if pd.isna(r.price_eur)
+                                         else f"€{r.price_eur:,.0f} · {r.price_market}", axis=1),
+        "Electric range": selected.apply(lambda r: "Not verified" if pd.isna(r.electric_range_km)
+                                         else f"{r.electric_range_km:,.0f} km · {r.range_standard}", axis=1),
+        "Battery": selected.apply(lambda r: "Not verified" if pd.isna(r.battery_capacity_kwh)
+                                  else f"{r.battery_capacity_kwh:g} kWh · {r.battery_capacity_basis} · {r.battery_chemistry}", axis=1),
+        "Status": selected.verification_status.map({'verified_values': 'Source-checked', 'partial': 'Partial'}),
+        "Availability": selected.availability_context,
+        "Variant / period": selected.variant_context,
+        "Price basis": selected.price_basis.fillna("Not verified"),
+        "Source": selected.source_url,
+        "Reviewed": selected.verification_date,
+        "Notes": selected.notes,
+    })
+    st.dataframe(display, hide_index=True, width="stretch", height=325,
+                 column_config={"Source": st.column_config.LinkColumn("Source", display_text="Open source")})
 
-col1, col2, col3, col4 = st.columns(4)
+    st.subheader("Comparable Dutch listings")
+    comparison = comparable_models(selected)
+    st.caption(f"{len(comparison)} of {len(selected)} selected models qualify: BEV, Netherlands listed RRP, "
+               "listed available on the source-review date, and EV Database Real Range. "
+               "Prices exclude indirect incentives. These are listing comparisons, not transaction prices; "
+               "confirm options and battery ownership terms. The historical Seal is excluded.")
+    if comparison.empty:
+        st.info("No models in this selection meet the comparison rules. See individual sourced values above.")
+    else:
+        fig, ax = plt.subplots(figsize=(8.5, 3.4), layout="constrained")
+        ax.scatter(comparison.price_eur, comparison.electric_range_km, color="#087f8c", s=75)
+        for row in comparison.itertuples():
+            label = f"{row.brand} {row.model.split()[0]}"
+            ax.annotate(label, (row.price_eur, row.electric_range_km), xytext=(7, 7),
+                        textcoords="offset points", fontsize=9)
+        ax.set(xlabel="Netherlands listed RRP (€)", ylabel="EV Database Real Range (km)")
+        ax.margins(x=0.20, y=0.25)
+        ax.grid(alpha=0.15)
+        ax.spines[['top', 'right']].set_visible(False)
+        st.pyplot(fig, width="stretch")
+        plt.close(fig)
 
-col1.metric("Avg price (€)", round(df["price_eur"].mean()))
-col2.metric("Avg range (km)", round(df["range_km"].mean()))
-col3.metric("Avg battery (kWh)", round(df["battery_kwh"].mean(), 1))
-col4.metric("Avg expansion", round(df["expansion_score"].mean(), 1))
+    with st.expander("Battery context — individual capacities, never a mixed average"):
+        st.write("Usable capacity is available to drive the vehicle; nominal capacity is the full rated pack. "
+                 "An unspecified basis is not treated as usable. NMC811 is a subtype of NMC. "
+                 "EREV describes a powertrain, not battery chemistry.")
+        battery = selected[['brand', 'model', 'battery_chemistry', 'battery_capacity_kwh', 'battery_capacity_basis']].copy()
+        battery['battery_capacity_kwh'] = battery.battery_capacity_kwh.map(lambda x: number(x, 1))
+        st.dataframe(battery.fillna("Not verified"), hide_index=True, width="stretch")
 
-# Model table
-st.subheader("EV Models")
+    with st.expander("Business observations — scope and limitations"):
+        if {'XPeng', 'Zeekr'}.issubset(set(comparison.brand)):
+            x = comparison.loc[comparison.brand.eq('XPeng')].iloc[0]
+            z = comparison.loc[comparison.brand.eq('Zeekr')].iloc[0]
+            st.markdown(f"**Observation:** The selected Zeekr has {z.electric_range_km-x.electric_range_km:.0f} km "
+                        f"more EV Database Real Range and a €{z.price_eur-x.price_eur:,.0f} higher Dutch listed price "
+                        "than the selected XPeng. **Business relevance:** A starting point to investigate the "
+                        "price/range trade-off. **Limitation:** Different vehicle formats and equipment; no best-buy conclusion.")
+        st.markdown(f"**Observation:** {metrics['comparable']} of {metrics['models']} selected models meet "
+                    "the common price/range rules. **Business relevance:** The shortlist must separate comparable "
+                    "listings from further research. **Limitation:** Exclusion is a data-context decision, not a negative brand assessment.")
 
-st.dataframe(
-    df[
-        [
-            "brand",
-            "model",
-            "market",
-            "price_eur",
-            "range_km",
-            "range_standard",
-            "battery_kwh",
-            "battery_type",
-            "segment",
-            "source_name",
-            "data_status"
-        ]
-    ],
-    use_container_width=True,
-    height=260
-)
+with international:
+    st.subheader("Documented international presence")
+    st.write("A country-specific commercial listing, official sales/test-drive channel or delivery report "
+             "can establish presence in that region. One country does not establish region-wide coverage.")
+    st.caption("Brand-level evidence may concern a different model or powertrain. Unknown means insufficient "
+               "evidence retained in this limited review — never absence. This is an evidence map, not an attractiveness ranking.")
+    matrix = presence_matrix(scope)
+    known = int(scope.presence_status.ne('unknown').sum())
+    st.markdown(f"**Evidence coverage: {known} / {len(scope)} selected brand–region cells resolved.** "
+                "Uneven research coverage prevents brand ranking by the number of documented regions.")
+    codes = matrix.replace({'unknown': 0, 'present': 1, 'absent': 2}).astype(int)
+    fig, ax = plt.subplots(figsize=(9, max(2.4, len(matrix) * .48 + .9)), layout="constrained")
+    ax.imshow(codes, cmap=ListedColormap(['#edf1f4', '#087f8c', '#f0c987']), vmin=0, vmax=2, aspect='auto')
+    ax.set_xticks(range(len(matrix.columns)), matrix.columns)
+    ax.set_yticks(range(len(matrix.index)), matrix.index)
+    for y, b in enumerate(matrix.index):
+        for x, r in enumerate(matrix.columns):
+            status = matrix.loc[b, r]
+            ax.text(x, y, status.title(), ha='center', va='center', fontsize=9,
+                    color='white' if status == 'present' else '#415164')
+    ax.tick_params(length=0, pad=8)
+    for spine in ax.spines.values():
+        spine.set_visible(False)
+    st.pyplot(fig, width="stretch")
+    plt.close(fig)
+    st.subheader("Evidence behind each cell")
+    st.dataframe(scope[['brand', 'region', 'presence_status', 'evidence_country', 'evidence_date',
+                        'source_url', 'verification_date', 'evidence_note']], hide_index=True, width="stretch",
+                 column_config={'source_url': st.column_config.LinkColumn('Source', display_text='Open evidence')})
+    st.caption("Use resolved cells to locate competitor evidence and unknown cells to plan further research. "
+               "Presence does not measure demand, registrations, profitability or entry feasibility.")
 
-# Export ranking
-st.subheader("Top Export Brands")
-
-ranking = (
-    df.groupby("brand")["expansion_score"]
-    .mean()
-    .sort_values(ascending=False)
-)
-
-fig1, ax1 = plt.subplots(figsize=(5, 2.8))
-ranking.plot(kind="bar", ax=ax1)
-ax1.set_ylabel("Expansion score")
-ax1.set_xlabel("")
-ax1.tick_params(axis="x", labelrotation=45, labelsize=8)
-st.pyplot(fig1, use_container_width=False)
-
-# Price vs range
-st.subheader("Price vs Range")
-
-plot_df = df.dropna(subset=["price_eur", "range_km"])
-
-fig2, ax2 = plt.subplots(figsize=(5, 3))
-ax2.scatter(plot_df["price_eur"], plot_df["range_km"])
-
-for _, row in plot_df.iterrows():
-    ax2.annotate(
-        row["brand"],
-        (row["price_eur"], row["range_km"]),
-        fontsize=7
-    )
-
-ax2.set_xlabel("Price (€)")
-ax2.set_ylabel("Range (km)")
-ax2.set_title("Price vs Range", fontsize=10)
-
-st.pyplot(fig2, use_container_width=False)
-
-# Battery analysis
-st.subheader("Average Range by Battery Type")
-
-battery_range = (
-    df.groupby("battery_type")["range_km"]
-    .mean()
-    .sort_values(ascending=False)
-)
-
-fig3, ax3 = plt.subplots(figsize=(5, 2.8))
-battery_range.plot(kind="bar", ax=ax3)
-ax3.set_ylabel("Range (km)")
-ax3.set_xlabel("")
-ax3.tick_params(axis="x", labelrotation=45, labelsize=8)
-st.pyplot(fig3, use_container_width=False)
-
-# Competitiveness ranking
-st.subheader("Competitiveness Ranking")
-
-st.dataframe(
-    df[
-        ["brand", "model", "competitiveness_score", "data_status"]
-    ].sort_values(
-        "competitiveness_score",
-        ascending=False
-    ),
-    use_container_width=True,
-    height=260
-)
-
-# Data notes
-st.subheader("Data Notes")
-
-st.write(
-    "Vehicle data is manually curated from public sources. "
-    "Range standards differ by source, including EV Database real range, WLTP and CLTC. "
-    "Expansion score and competitiveness score are custom analytical indices, not official industry metrics."
-)
+with st.expander("Methodology, sources and limitations"):
+    st.write("The original hand-curated eight-model case is retained; its original sampling rationale was not "
+             "documented. Review date means the source was checked, not that all specifications are from 2026. "
+             "No prices are imputed or converted from CNY. CLTC, WLTP and EV Database Real Range remain separate. "
+             "Electric and total range are different fields; unverified numbers remain missing. "
+             "Source-checked means matching a cited publication, not independently tested vehicle performance.")
+    st.write("Li Auto retains its EREV identity but no trim-specific numeric claims. Xiaomi retains a historical "
+             "800 km CLTC launch claim; battery data and its former EUR conversion are withheld. "
+             "Jaecoo capacity is 58.9 kWh with an unspecified nominal/usable basis. "
+             "Full field definitions and the source-review log are in data/README.md and data/SOURCES.md.")
+    st.dataframe(brands.loc[brands.brand.isin(selected.brand)], hide_index=True, width="stretch",
+                 column_config={'source_url': st.column_config.LinkColumn('Company source', display_text='Open source')})
+    st.caption("Positioning is an editorial description of this selected case. Company/group links do not constitute "
+               "a complete ownership tree. AI assisted the portfolio repair, documentation and tests; the evidence comes from cited external sources.")
