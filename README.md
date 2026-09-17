@@ -111,4 +111,4 @@ The notebook can also be run top to bottom from its own directory with the same 
 
 Original project and hand-curated dataset: **Oliver de Bruin**. The September 2026 portfolio repair used **OpenAI Codex assistance** for source checking, semantic corrections, implementation, documentation and tests. External publications are the evidence; AI is not a factual source. No independent vehicle testing or owner verification is claimed.
 
-The repository retains its existing directory/GitHub name. No third-party data licence is granted by this project; consult original source terms before reuse.
+The existing GitHub repository is now named `Chinese-EV-Market-Intelligence-Dashboard`; the local project directory retains its original name. No third-party data licence is granted by this project; consult original source terms before reuse.
